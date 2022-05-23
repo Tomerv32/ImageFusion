@@ -52,8 +52,6 @@ def example_multiple(imgs_path):
 
 def main():     # Examples
     example_full("img/lytro-03-A.jpg", "img/lytro-03-B.jpg")
-    # time.sleep(time_delay)
-    # example_two("img/lytro-05-A.jpg", "img/lytro-05-B.jpg")
     time.sleep(time_delay)
     example_two("img/03desk1.bmp", "img/03desk2.bmp")
     time.sleep(time_delay)
@@ -63,15 +61,13 @@ def main():     # Examples
 
 
 if __name__ == '__main__':
-    # Filteres Params
-    mean_filter_size = 7    # mean_filter
-    gf_r = 5                # Guided Filter radius
-    gf_eps = 0.3            # Guided Filter epsilon
-    bw_open_size = 20       # BW opening
+    # Delay between examples
     time_delay = 3
 
-    main()
+    # Filters Params
+    mean_filter_size = 7    # Mean Filter Kernel
+    gf_r = 5                # Guided Filter Radius
+    gf_eps = 0.3            # Guided Filter Epsilon
+    bw_open_size = 20       # BW Opening Area Size
 
-    # TODO:
-    # Documentation should be great! verify it :)
-    # Go over box and guided_filter functions
+    main()

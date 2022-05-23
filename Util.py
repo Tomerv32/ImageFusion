@@ -19,10 +19,10 @@ class ImageFusion:
         """
         Class init function
 
-        :param im_1:        Image1 to Fuse
-        :param im_2:        Image2 to Fuse
-        :param is_path_1:   BOOL, Is im1 a path or an image
-        :param is_path_2:   BOOL, Is im2 a path or an image
+        im_1 (path/ndarray):    Image1 to Fuse
+        im_2 (path/ndarray):    Image2 to Fuse
+        is_path_1 (bool):       Is im1 a path or an image
+        is_path_2 (bool):       Is im2 a path or an image
         """
         self.ImageToFuse1 = ImageToFuse(im_1, is_path_1)
         self.ImageToFuse2 = ImageToFuse(im_2, is_path_2)
@@ -40,11 +40,11 @@ class ImageFusion:
 
     def plot_image(self, var_str, title="", show=False):
         """
-        Plotting single image
+        Plot single image
 
-        :param var_str: Name (string) of image to plot (get var with getattr)
-        :param title:   Plot title
-        :param show:    BOOL, Plot on screen
+        var_str (string):   Name of image to plot (get var with getattr)
+        title (string):     Plot title
+        show (bool):        Plot.show()
         """
         im_to_plot = getattr(self, var_str)
         if len(im_to_plot.shape) == 3:
@@ -65,7 +65,7 @@ class ImageFusion:
         """
         Plot all images
 
-        :param block: BOOL, Wait for figure to be closed by user before moving on
+        block (bool): Wait for figure to be closed by user before moving on
         """
         self.ImageToFuse1.plot_all(block=False)
         self.ImageToFuse2.plot_all(block=True)
@@ -95,7 +95,7 @@ class ImageFusion:
         """
         Plot comparison images of 2 images to fuse
 
-        :param image_cmp: Name (string) of images to plot (get var with getattr)
+        image_cmp (string): Name of images to plot (get var with getattr)
         """
         plt.figure()
         plt.get_current_fig_manager().window.state('zoomed')
@@ -148,7 +148,7 @@ class ImageFusion:
         """
         Creates initial descision map by taking max of both accurate descision maps
 
-        :return: Initial Descision Map
+        return (ndarray): Initial Descision Map
         """
         self.IDM = self.ImageToFuse1.AFM > self.ImageToFuse2.AFM
         return self.IDM
@@ -158,8 +158,8 @@ class ImageFusion:
         Improve initial decision map with binary opening -
         removing areas smaller than {size} from the boolean map
 
-        :param size:    Binary Opening (MATLAB bwareaopen) area size
-        :return:        Improved Initial Descision Map
+        size (int):         Binary Opening (MATLAB bwareaopen) area size
+        return (ndarray):   Improved Initial Descision Map
         """
         self.IDMbw_area = size
         sq = np.ones((self.IDMbw_area, self.IDMbw_area), dtype=bool)
@@ -174,7 +174,7 @@ class ImageFusion:
         Creates final desicion map with initial fused image
 
         Go to guided_filter for more details
-        :return:    Final Descision map
+        return (ndarray): Final Descision map
         """
         temp_1 = self.IDMbw * self.ImageToFuse1.ImGray + (1-self.IDMbw) * self.ImageToFuse2.ImGray
         self.FDM = guided_filter(temp_1, self.IDMbw, r, eps)
@@ -184,7 +184,7 @@ class ImageFusion:
         """
         Creates fused image, using the FDM map on 3 R-G-B layers
 
-        :return: Fused Image
+        return (ndarray): Fused Image
         """
         FDM = self.FDM
         if len(self.ImageToFuse1.Im.shape) == 3:
@@ -202,8 +202,8 @@ class ImageToFuse:
         images are loaded as "double" images for guided filter mean/var easy calcs
         other vars are set to None for PEP8 standart init
 
-        :param im:      Image to Fuse
-        :param is_path: BOOL, Is im a path or an image
+        im (ndarray/path):  Image to Fuse
+        is_path (bool):     Is im a path or an image
         """
         if is_path:
             self.Im = np.asarray(Image.open(im), dtype=np.float64)/255
@@ -220,11 +220,11 @@ class ImageToFuse:
 
     def plot_image(self, var_str, title="", show=False):
         """
-        Plotting single image
+        Plot single image
 
-        :param var_str: Name (string) of image to plot (get var with getattr)
-        :param title:   Plot title
-        :param show:    BOOL, Plot on screen
+        var_str (string):   Name of image to plot (get var with getattr)
+        title (string):     Plot title
+        show (bool):        Plot.show()
         """
         im_to_plot = getattr(self, var_str)
         if len(im_to_plot.shape) == 3:
@@ -245,7 +245,7 @@ class ImageToFuse:
         """
         Plot all images
 
-        :param block: BOOL, Wait for figure to be closed by user before moving on
+        block (bool): Wait for figure to be closed by user before moving on
         """
         plt.figure().suptitle("Image to Fuse")
         plt.subplot(2, 2, 1)
@@ -266,8 +266,8 @@ class ImageToFuse:
         """
         Mean filter calculation
 
-        :param size:    Median Filter Kernel Size
-        :return:        Filtered Image
+        size (int):         Median Filter Kernel Size
+        return (ndarray):   Filtered Image
         """
         self.mean_filter_size = size
         self.M = uniform_filter(self.ImGray, size=self.mean_filter_size)
@@ -277,7 +277,7 @@ class ImageToFuse:
         """
         Create rough focus map by subtracting median filtered image from original image
 
-        :return: Rough Focus Map
+        return (ndarray): Rough Focus Map
         """
         self.RFM = np.abs(self.ImGray-self.M)
         return self.RFM
@@ -287,7 +287,7 @@ class ImageToFuse:
         Create accurate focus map by using guided filter
 
         Go to guided_filter for more details
-        :return: Rough Focus Map
+        return (ndarray): Rough Focus Map
         """
         self.AFM = guided_filter(self.ImGray, self.RFM, r, eps)
         return self.AFM
@@ -297,9 +297,9 @@ def box(img, r):
     """
     O(1) box filter
 
-    :param img: 2D image
-    :param r:   Radius of box filter
-    :return:    Box filter
+    img (ndarray):      2D image
+    r (int):            Radius of box filter
+    return (ndarray):   Box filter
     """
     (rows, cols) = img.shape[:2]
     imDst = np.zeros_like(img)
@@ -315,13 +315,13 @@ def box(img, r):
     tile[1] = r
     imCum = np.cumsum(imDst, 1)
     imDst[:, 0:r+1, ...] = imCum[:, r:2*r+1, ...]
-    imDst[:, r+1:cols-r, ...] = imCum[:, 2*r+1 : cols, ...] - imCum[:, 0 : cols-2*r-1, ...]
-    imDst[:, cols-r: cols, ...] = np.tile(imCum[:, cols-1:cols, ...], tile) - imCum[:, cols-2*r-1 : cols-r-1, ...]
+    imDst[:, r+1:cols-r, ...] = imCum[:, 2*r+1: cols, ...] - imCum[:, 0: cols-2*r-1, ...]
+    imDst[:, cols-r: cols, ...] = np.tile(imCum[:, cols-1:cols, ...], tile) - imCum[:, cols-2*r-1: cols-r-1, ...]
 
     return imDst
 
 
-def guided_filter(I, p, r, eps):
+def guided_filter(i, p, r, eps):
     """
     Grayscale (fast) guided filter
 
@@ -330,29 +330,29 @@ def guided_filter(I, p, r, eps):
     Fast Guided Filter, Kaiming He Jian Sun, Microsoft
     -----
 
-    :param I:   Guide Image (1 channel)
-    :param p:   Filter Input (1 channel)
-    :param r:   Window Radius
-    :param eps: Regularization (roughly, allowable variance of non-edge noise)
-    :return:    Guided Filter Image
+    i (ndarray):        Guide Image (1 channel)
+    p (ndarray):        Filter Input (1 channel)
+    r (int):            Window Radius
+    eps (float):        Regularization (roughly, allowable variance of non-edge noise)
+    return (ndarray):   Guided Filter Image
     """
-    (rows, cols) = I.shape
+    (rows, cols) = i.shape
     n_box = box(np.ones([rows, cols]), r)
 
-    mean_I = box(I, r) / n_box
+    mean_i = box(i, r) / n_box
     mean_p = box(p, r) / n_box
 
-    corr_I = box(I * I, r) / n_box
-    corr_Ip = box(I * p, r) / n_box
+    corr_i = box(i * i, r) / n_box
+    corr_ip = box(i * p, r) / n_box
 
-    var_I = corr_I - mean_I * mean_I
-    cov_Ip = corr_Ip - mean_I * mean_p
+    var_i = corr_i - mean_i * mean_i
+    cov_ip = corr_ip - mean_i * mean_p
 
-    a = cov_Ip / (var_I + eps)
-    b = mean_p - a * mean_I
+    a = cov_ip / (var_i + eps)
+    b = mean_p - a * mean_i
 
-    mean_A = box(a, r) / n_box
-    mean_B = box(b, r) / n_box
+    mean_a = box(a, r) / n_box
+    mean_b = box(b, r) / n_box
 
-    q = mean_A * I + mean_B
+    q = mean_a * i + mean_b
     return q

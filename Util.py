@@ -1,11 +1,17 @@
 from PIL import Image
 import numpy as np
 from scipy.ndimage import uniform_filter, binary_opening    # Mean filter, bwareaopen
+import ctypes                                               # DPI Fixes
 import matplotlib.pyplot as plt
 import matplotlib
-matplotlib.rcParams["figure.titlesize"] = 14
+
+# Matplotlib default title size
+matplotlib.rcParams["figure.titlesize"] = 16
 matplotlib.rcParams["figure.titleweight"] = 'bold'
-matplotlib.rcParams["axes.titlesize"] = 12
+matplotlib.rcParams["axes.titlesize"] = 14
+
+# Fix DPI issues when using "full screen" figures
+ctypes.windll.shcore.SetProcessDpiAwareness(0)
 
 
 class ImageFusion:
@@ -32,20 +38,26 @@ class ImageFusion:
             cmap = 'gray'
         plt.imshow(im_to_plot, cmap=cmap)
         plt.title(title)
-        plt.axis('off')
+        plt.yticks([])
+        plt.xticks([])
 
         if show:
+            plt.tight_layout()
+            plt.get_current_fig_manager().window.state('zoomed')
             plt.show()
 
-    def plot_all(self):
-        self.ImageToFuse1.plot_all()
-        self.ImageToFuse2.plot_all()
+    def plot_all(self, block=True):
+        self.ImageToFuse1.plot_all(block=False)
+        self.ImageToFuse2.plot_all(block=True)
 
         plt.figure().suptitle("Decision Maps")
         plt.subplot(1, 2, 1)
         self.plot_image("IDMbw", "Initial Decision Map (bw)")
         plt.subplot(1, 2, 2)
         self.plot_image("FDM", "Final Decision Map")
+        plt.tight_layout()
+        plt.get_current_fig_manager().window.state('zoomed')
+        plt.show()
 
         plt.figure().suptitle("Final Fused Image")
         plt.subplot(1, 3, 1)
@@ -55,6 +67,18 @@ class ImageFusion:
         plt.subplot(1, 3, 3)
         self.plot_image("IF", "Fused Image")
 
+        plt.tight_layout()
+        plt.get_current_fig_manager().window.state('zoomed')
+        plt.show(block=block)
+
+    def plot_compare(self, image_cmp):
+        plt.figure()
+        plt.get_current_fig_manager().window.state('zoomed')
+        plt.subplot(1, 2, 1)
+        self.ImageToFuse1.plot_image(image_cmp, "Image 1")
+        plt.subplot(1, 2, 2)
+        self.ImageToFuse2.plot_image(image_cmp, "Image 2")
+        plt.tight_layout()
         plt.show()
 
     def image_fusion_run(self, size, r, eps, bw_size):
@@ -167,20 +191,21 @@ class ImageToFuse:
 
     def plot_image(self, var_str, title="", show=False):
         im_to_plot = getattr(self, var_str)
-
         if len(im_to_plot.shape) == 3:
             cmap = plt.rcParams["image.cmap"]
         else:
             cmap = 'gray'
-
         plt.imshow(im_to_plot, cmap=cmap)
         plt.title(title)
-        plt.axis('off')
+        plt.yticks([])
+        plt.xticks([])
 
         if show:
+            plt.tight_layout()
+            plt.get_current_fig_manager().window.state('zoomed')
             plt.show()
 
-    def plot_all(self):
+    def plot_all(self, block=True):
         plt.figure().suptitle("Image to Fuse")
         plt.subplot(2, 2, 1)
         self.plot_image("Im", "Original Image")
@@ -192,7 +217,9 @@ class ImageToFuse:
         self.plot_image("RFM", "Rough focus map")
         plt.subplot(2, 3, 6)
         self.plot_image("AFM", "Accurate focus map")
-        plt.show(block=False)
+
+        plt.get_current_fig_manager().window.state('zoomed')
+        plt.show(block=block)
 
     def mean_filter(self, size):
         """

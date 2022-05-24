@@ -9,10 +9,10 @@ def example_full(path_1, path_2, is_path_1=True, is_path_2=True):
     fuse_obj.mean_filter(mean_filter_size)
     fuse_obj.plot_compare("M")
 
-    fuse_obj.rough_foucs_map()
+    fuse_obj.rough_focus_map()
     fuse_obj.plot_compare("RFM")
 
-    fuse_obj.accurate_foucs_map(gf_r, gf_eps)
+    fuse_obj.accurate_focus_map(gf_r, gf_eps)
     fuse_obj.plot_compare("AFM")
 
     fuse_obj.initial_decision_map()
@@ -26,6 +26,10 @@ def example_full(path_1, path_2, is_path_1=True, is_path_2=True):
 
     fuse_obj.image_fusion()
     fuse_obj.plot_image("IF", "Fused Image", show=True)
+
+    # fuse_obj.export_image("IF", "IF")
+    # fuse_obj.ImageToFuse1.export_image("Im", "Image1")
+    # fuse_obj.ImageToFuse2.export_image("Im", "Image2")
 
 
 def example_two(path_1, path_2, is_path_1=True, is_path_2=True):

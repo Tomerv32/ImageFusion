@@ -106,6 +106,18 @@ class ImageFusion:
         plt.tight_layout()
         plt.show()
 
+    def export_image(self, var_str, filename):
+        """
+        Export JPG image
+
+        var_str (string):   Name of image to export (get var with getattr)
+        filename (string):  Output file name
+        """
+        im_to_export = getattr(self, var_str)
+        im_to_export = (im_to_export*255).astype(np.uint8)
+        im_to_export = Image.fromarray(im_to_export)
+        im_to_export.save(filename + ".jpg")
+
     def image_fusion_run(self, size, r, eps, bw_size):
         """
         Run all methods
@@ -113,8 +125,8 @@ class ImageFusion:
         Go to methods for more details
         """
         self.mean_filter(size)
-        self.rough_foucs_map()
-        self.accurate_foucs_map(r, eps)
+        self.rough_focus_map()
+        self.accurate_focus_map(r, eps)
         self.initial_decision_map()
         self.initial_decision_map_bw_opening(bw_size)
         self.final_decision_map(r, eps)
@@ -128,27 +140,27 @@ class ImageFusion:
         M2 = self.ImageToFuse2.mean_filter(size)
         return M1, M2
 
-    def rough_foucs_map(self):
+    def rough_focus_map(self):
         """
-        Go to ImageToFuse.rough_foucs_map for more details
+        Go to ImageToFuse.rough_focus_map for more details
         """
-        RFM1 = self.ImageToFuse1.rough_foucs_map()
-        RFM2 = self.ImageToFuse2.rough_foucs_map()
+        RFM1 = self.ImageToFuse1.rough_focus_map()
+        RFM2 = self.ImageToFuse2.rough_focus_map()
         return RFM1, RFM2
 
-    def accurate_foucs_map(self, r, eps):
+    def accurate_focus_map(self, r, eps):
         """
-        Go to ImageToFuse.accurate_foucs_map for more details
+        Go to ImageToFuse.accurate_focus_map for more details
         """
-        AFM1 = self.ImageToFuse1.accurate_foucs_map(r, eps)
-        AFM2 = self.ImageToFuse2.accurate_foucs_map(r, eps)
+        AFM1 = self.ImageToFuse1.accurate_focus_map(r, eps)
+        AFM2 = self.ImageToFuse2.accurate_focus_map(r, eps)
         return AFM1, AFM2
 
     def initial_decision_map(self):
         """
-        Creates initial descision map by taking max of both accurate descision maps
+        Creates initial decision map by taking max of both accurate decision maps
 
-        return (ndarray): Initial Descision Map
+        return (ndarray): Initial Decision Map
         """
         self.IDM = self.ImageToFuse1.AFM > self.ImageToFuse2.AFM
         return self.IDM
@@ -159,7 +171,7 @@ class ImageFusion:
         removing areas smaller than {size} from the boolean map
 
         size (int):         Binary Opening (MATLAB bwareaopen) area size
-        return (ndarray):   Improved Initial Descision Map
+        return (ndarray):   Improved Initial Decision Map
         """
         self.IDMbw_area = size
         sq = np.ones((self.IDMbw_area, self.IDMbw_area), dtype=bool)
@@ -171,10 +183,10 @@ class ImageFusion:
 
     def final_decision_map(self, r, eps):
         """
-        Creates final desicion map with initial fused image
+        Creates final decision map with initial fused image
 
         Go to guided_filter for more details
-        return (ndarray): Final Descision map
+        return (ndarray): Final Decision map
         """
         temp_1 = self.IDMbw * self.ImageToFuse1.ImGray + (1-self.IDMbw) * self.ImageToFuse2.ImGray
         self.FDM = guided_filter(temp_1, self.IDMbw, r, eps)
@@ -200,7 +212,7 @@ class ImageToFuse:
         """
         Class init function
         images are loaded as "double" images for guided filter mean/var easy calcs
-        other vars are set to None for PEP8 standart init
+        other vars are set to None for PEP8 standard init
 
         im (ndarray/path):  Image to Fuse
         is_path (bool):     Is im a path or an image
@@ -262,6 +274,18 @@ class ImageToFuse:
         plt.get_current_fig_manager().window.state('zoomed')
         plt.show(block=block)
 
+    def export_image(self, var_str, filename):
+        """
+        Export JPG image
+
+        var_str (string):   Name of image to export (get var with getattr)
+        filename (string):  Output file name
+        """
+        im_to_export = getattr(self, var_str)
+        im_to_export = (im_to_export*255).astype(np.uint8)
+        im_to_export = Image.fromarray(im_to_export)
+        im_to_export.save(filename + ".jpg")
+
     def mean_filter(self, size):
         """
         Mean filter calculation
@@ -273,7 +297,7 @@ class ImageToFuse:
         self.M = uniform_filter(self.ImGray, size=self.mean_filter_size)
         return self.M
 
-    def rough_foucs_map(self):
+    def rough_focus_map(self):
         """
         Create rough focus map by subtracting median filtered image from original image
 
@@ -282,7 +306,7 @@ class ImageToFuse:
         self.RFM = np.abs(self.ImGray-self.M)
         return self.RFM
 
-    def accurate_foucs_map(self, r, eps):
+    def accurate_focus_map(self, r, eps):
         """
         Create accurate focus map by using guided filter
 
@@ -307,16 +331,16 @@ def box(img, r):
     tile = [1] * img.ndim
     tile[0] = r
     imCum = np.cumsum(img, 0)
-    imDst[0:r+1, :, ...] = imCum[r:2*r+1, :, ...]
-    imDst[r+1:rows-r, :, ...] = imCum[2*r+1:rows, :, ...] - imCum[0:rows-2*r-1, :, ...]
-    imDst[rows-r:rows, :, ...] = np.tile(imCum[rows-1:rows, :, ...], tile) - imCum[rows-2*r-1:rows-r-1, :, ...]
+    imDst[0:r+1, :] = imCum[r:2*r+1, :]
+    imDst[r+1:rows-r, :] = imCum[2*r+1:rows, :] - imCum[0:rows-2*r-1, :]
+    imDst[rows-r:rows, :] = np.tile(imCum[rows-1:rows, :], tile) - imCum[rows-2*r-1:rows-r-1, :]
 
     tile = [1] * img.ndim
     tile[1] = r
     imCum = np.cumsum(imDst, 1)
-    imDst[:, 0:r+1, ...] = imCum[:, r:2*r+1, ...]
-    imDst[:, r+1:cols-r, ...] = imCum[:, 2*r+1: cols, ...] - imCum[:, 0: cols-2*r-1, ...]
-    imDst[:, cols-r: cols, ...] = np.tile(imCum[:, cols-1:cols, ...], tile) - imCum[:, cols-2*r-1: cols-r-1, ...]
+    imDst[:, 0:r+1] = imCum[:, r:2*r+1]
+    imDst[:, r+1:cols-r] = imCum[:, 2*r+1: cols] - imCum[:, 0: cols-2*r-1]
+    imDst[:, cols-r: cols] = np.tile(imCum[:, cols-1:cols], tile) - imCum[:, cols-2*r-1: cols-r-1]
 
     return imDst
 
